@@ -1,51 +1,1082 @@
-<!doctype html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f766e"><title>StrollerRent Kasir</title>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KasirNota Pro - Rental System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563EB;
+            --primary-light: #EFF6FF;
+            --bg: #F3F4F6;
+            --text-dark: #111827;
+            --text-gray: #6B7280;
+            --border: #D1D5DB;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-dark); padding-bottom: 75px; }
+
+        /* Header Aplikasi */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: white; border-bottom: 1px solid #E5E7EB; position: sticky; top: 0; z-index: 10; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { background: var(--primary); color: white; padding: 7px 11px; border-radius: 10px; font-weight: 700; font-size: 16px; }
+        .logo-text { font-size: 17px; font-weight: 700; }
+        .logo-text span { color: var(--primary); }
+
+        /* Navigasi Bawah */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: white;
+            display: flex; justify-content: space-around; padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); border-top: 1px solid #E5E7EB;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            color: var(--text-gray); font-size: 11px; font-weight: 500; cursor: pointer;
+            border: none; background: none; width: 33%;
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 19px; }
+
+        /* Container */
+        .container { padding: 14px; max-width: 600px; margin: 0 auto; display: none; flex-direction: column; gap: 14px; }
+        .container.active { display: flex; }
+
+        /* Cards & Forms */
+        .card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .card-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-gray); margin-bottom: 4px; }
+        .form-control { width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #F9FAFB; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+
+        /* Buttons */
+        .btn { padding: 11px 12px; border-radius: 8px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); }
+        .btn-icon { background: var(--primary-light); color: var(--primary); border: none; padding: 8px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px; }
+        .btn-danger-icon { background: #FEE2E2; color: var(--danger); border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+        /* Items */
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 11px; border: 1px solid var(--border); border-radius: 10px; background: #F9FAFB; margin-bottom: 8px; gap: 8px; }
+        .item-detail h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+        .item-detail p { font-size: 12px; color: var(--text-gray); }
+
+        /* Badge Status */
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .badge-lunas { background: #D1FAE5; color: #065F46; }
+        .badge-dp { background: #FEF3C7; color: #92400E; }
+        .badge-sewa { background: #DBEAFE; color: #1E40AF; }
+        .badge-selesai { background: #E5E7EB; color: #374151; }
+        .badge-terlambat { background: #FEE2E2; color: #991B1B; }
+
+        /* Modal Setting */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 999; align-items: center; justify-content: center; padding: 15px; }
+        .modal-content { background: white; width: 100%; max-width: 420px; border-radius: 14px; padding: 18px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .btn-close { background: none; border: none; font-size: 24px; color: var(--text-gray); cursor: pointer; }
+
+        /* Halaman Web Nota Lokal */
+        #laporan-nota-page {
+            display: none;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 14px;
+        }
+        .nota-top-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .receipt-card {
+            background: #ffffff;
+            color: #111827;
+            border-radius: 6px;
+            padding: 20px 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        .receipt-header {
+            text-align: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #9CA3AF;
+            margin-bottom: 14px;
+        }
+        .receipt-store {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+        .receipt-sub {
+            font-size: 13px;
+            color: #1F2937;
+            line-height: 1.45;
+            margin-top: 2px;
+        }
+        .receipt-customer {
+            text-align: center;
+            font-size: 17px;
+            font-weight: 700;
+            margin: 12px 0 14px 0;
+            color: #111827;
+        }
+        .receipt-meta {
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+        .receipt-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            gap: 12px;
+        }
+        .receipt-meta-label {
+            color: #1F2937;
+            font-weight: 500;
+        }
+        .receipt-meta-val {
+            font-weight: 700;
+            text-align: right;
+            color: #111827;
+        }
+
+        .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+            font-size: 13px;
+        }
+        .receipt-table thead th {
+            background: #2563EB;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 8px 6px;
+            text-align: left;
+        }
+        .receipt-table th.right, .receipt-table td.right { text-align: right; }
+        .receipt-table th.center, .receipt-table td.center { text-align: center; }
+        .receipt-table tbody td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #E5E7EB;
+            vertical-align: top;
+        }
+
+        .receipt-totals {
+            border-top: 1px solid #9CA3AF;
+            padding-top: 10px;
+            font-size: 14px;
+        }
+        .receipt-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+        .receipt-grand-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 8px;
+            margin-top: 6px;
+            border-top: 1px solid #111827;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .receipt-footer {
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px dashed #D1D5DB;
+            font-size: 12px;
+            color: #374151;
+            line-height: 1.5;
+        }
+        .local-url-box {
+            margin-top: 10px;
+            padding: 8px 10px;
+            background: #F9FAFB;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 11px;
+            color: #374151;
+            word-break: break-all;
+        }
+        .receipt-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .info-note {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-gray);
+            margin-top: 8px;
+            min-height: 16px;
+        }
+
+        /* Grafik Sederhana */
+        .chart-container { display: flex; align-items: flex-end; height: 150px; gap: 10px; padding-top: 20px; border-bottom: 2px solid var(--border); overflow-x: auto; }
+        .bar-wrapper { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 40px; }
+        .bar { width: 100%; background: var(--primary); border-radius: 5px 5px 0 0; }
+        .bar-label { font-size: 10px; margin-top: 5px; color: var(--text-gray); white-space: nowrap; }
+
+        @media print {
+            body { background: white; padding-bottom: 0; }
+            .header, .bottom-nav, .container, #modal-setting, .nota-top-bar, .receipt-actions, .info-note, .local-url-box {
+                display: none !important;
+            }
+            #laporan-nota-page {
+                display: block !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            .receipt-card {
+                box-shadow: none !important;
+                padding: 4px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header" id="app-header">
+        <div class="logo-area">
+            <div class="logo-icon">$</div>
+            <div class="logo-text">KasirNota <span>Pro</span></div>
+        </div>
+        <button class="btn-icon" onclick="bukaModalSetting()">⚙️ Pengaturan</button>
+    </div>
+
+    <!-- HALAMAN 1: KASIR -->
+    <div class="container active" id="page-kasir">
+        <div class="card">
+            <div class="card-title">👤 Data Pelanggan</div>
+            <div class="form-group">
+                <label>Nama Pelanggan *</label>
+                <input type="text" id="nama-pelanggan" class="form-control" placeholder="Keisya">
+            </div>
+            <div class="form-group">
+                <label>No. HP / WhatsApp</label>
+                <input type="tel" id="no-hp" class="form-control" placeholder="081217146091">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tgl Ambil</label>
+                    <input type="date" id="tgl-ambil" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Tgl Kembali</label>
+                    <input type="date" id="tgl-kembali" class="form-control">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Jaminan</label>
+                    <select id="jaminan" class="form-control">
+                        <option>KTP Asli</option>
+                        <option>SIM Asli</option>
+                        <option>Kartu Pelajar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status Sewa</label>
+                    <select id="status-sewa" class="form-control">
+                        <option value="Disewa">Disewa</option>
+                        <option value="Booking">Booking</option>
+                        <option value="Selesai">Selesai</option>
+                        <option value="Terlambat">Terlambat</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Status Bayar</label>
+                    <select id="status-bayar" class="form-control" onchange="toggleNominalDP()">
+                        <option value="Lunas">Lunas</option>
+                        <option value="DP">DP</option>
+                    </select>
+                </div>
+                <div class="form-group" id="dp-group" style="display:none;">
+                    <label>Nominal DP (Rp)</label>
+                    <input type="number" id="nominal-dp" class="form-control" value="0" min="0" onchange="hitungTotal()">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📦 Barang Sewa</div>
+            <div id="katalog-container"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🛒 Keranjang</div>
+            <div id="cart-container"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">💳 Perhitungan</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ongkir / Ongkos Kirim (Rp)</label>
+                    <input type="number" id="biaya-ongkir" class="form-control" value="0" onchange="hitungTotal()">
+                </div>
+                <div class="form-group">
+                    <label>Diskon (Rp)</label>
+                    <input type="number" id="diskon" class="form-control" value="0" onchange="hitungTotal()">
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:15px; font-weight:700; color:var(--primary);">
+                <span>TOTAL</span><span id="total-text">Rp 0</span>
+            </div>
+            <div id="sisa-preview-row" style="display:none; justify-content:space-between; margin-bottom:10px; font-size:13px; font-weight:600; color:#92400E;">
+                <span>Sisa Bayar</span><span id="sisa-text">Rp 0</span>
+            </div>
+            <button class="btn btn-primary" onclick="prosesTransaksi()">Proses & Buat Laporan Nota</button>
+        </div>
+    </div>
+
+    <!-- HALAMAN 2: RIWAYAT -->
+    <div class="container" id="page-riwayat">
+        <div class="card">
+            <div class="card-title">📋 Riwayat Transaksi</div>
+            <div id="riwayat-container"></div>
+        </div>
+    </div>
+
+    <!-- HALAMAN 3: LAPORAN -->
+    <div class="container" id="page-laporan">
+        <div class="card">
+            <div class="card-title">📊 Laporan Pendapatan</div>
+            <div class="form-group">
+                <select id="filter-laporan" class="form-control" onchange="renderLaporan()">
+                    <option value="minggu">7 Hari Terakhir</option>
+                    <option value="bulan">30 Hari Terakhir</option>
+                </select>
+            </div>
+            <div style="margin-top: 20px;">
+                <div class="chart-container" id="chart-container"></div>
+            </div>
+            <div style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 15px;">
+                <div id="laporan-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HALAMAN LAPORAN NOTA WEB LOKAL -->
+    <div id="laporan-nota-page">
+        <div class="nota-top-bar">
+            <button class="btn btn-outline" onclick="kembaliDariNota()">← Kembali</button>
+            <button class="btn btn-primary" onclick="bukaWebNotaLokal()">🌐 Web Nota Lokal</button>
+        </div>
+
+        <div class="receipt-card" id="receipt-content"></div>
+
+        <div class="local-url-box" id="local-nota-url-box"></div>
+
+        <div class="receipt-actions">
+            <button class="btn btn-success" onclick="salinTeksNota()">Salin Teks Nota</button>
+            <button class="btn btn-outline" onclick="kembaliDariNota()">Selesai</button>
+        </div>
+
+        <div class="info-note" id="nota-status-msg"></div>
+    </div>
+
+    <!-- Navigasi Bawah -->
+    <div class="bottom-nav" id="app-bottom-nav">
+        <button class="nav-item active" onclick="switchPage('kasir', this)"><span class="nav-icon">🏪</span> Kasir</button>
+        <button class="nav-item" onclick="switchPage('riwayat', this)"><span class="nav-icon">📋</span> Riwayat</button>
+        <button class="nav-item" onclick="switchPage('laporan', this)"><span class="nav-icon">📊</span> Laporan</button>
+    </div>
+
+    <!-- Modal Pengaturan Pemilik & Toko -->
+    <div class="modal-overlay" id="modal-setting">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Pengaturan Pemilik & Toko</h3>
+                <button class="btn-close" onclick="tutupModalSetting()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Nama Toko / Usaha</label>
+                <input type="text" id="setting-nama-toko" class="form-control" placeholder="KasirNota Pro">
+            </div>
+            <div class="form-group">
+                <label>Nama Pemilik</label>
+                <input type="text" id="setting-nama-pemilik" class="form-control" placeholder="Amaliya">
+            </div>
+            <div class="form-group">
+                <label>Alamat Toko / Pemilik</label>
+                <textarea id="setting-alamat-toko" class="form-control" rows="2" placeholder="Jl. Contoh No. 12, Surabaya"></textarea>
+            </div>
+            <div class="form-group">
+                <label>No. HP / WA Toko</label>
+                <input type="tel" id="setting-wa-toko" class="form-control" placeholder="08123456789">
+            </div>
+            <button class="btn btn-success" onclick="simpanSetting()" style="margin-bottom: 18px;">Simpan Pengaturan</button>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 14px;">
+                <h4 style="font-size: 14px; margin-bottom: 10px;">Atur Daftar Barang</h4>
+                <div class="form-group">
+                    <input type="text" id="input-nama-barang" class="form-control" placeholder="Nama Barang Baru" style="margin-bottom: 6px;">
+                    <input type="number" id="input-harga-barang" class="form-control" placeholder="Harga / Hari" style="margin-bottom: 6px;">
+                    <button class="btn btn-primary" onclick="tambahBarangBaru()">+ Tambah Barang</button>
+                </div>
+                <div id="list-barang-setting"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const katalogDefault = [
+            { id: 1, nama: 'Stroller Bayi Biasa', harga: 25000 },
+            { id: 2, nama: 'Stroller Kabin Lipat', harga: 40000 },
+            { id: 3, nama: 'Stroller Twin (Kembar)', harga: 60000 }
+        ];
+
+        let katalog = JSON.parse(localStorage.getItem('katalogStroller')) || [...katalogDefault];
+        let keranjang = [];
+        let nomorNota = '';
+        let transaksiDB = JSON.parse(localStorage.getItem('transaksiStroller')) || [];
+
+        let namaToko = localStorage.getItem('namaToko') || 'KasirNota Pro';
+        let namaPemilik = localStorage.getItem('namaPemilik') || '';
+        let alamatToko = localStorage.getItem('alamatToko') || '';
+        let waToko = localStorage.getItem('waToko') || '';
+
+        let transaksiAktif = null;
+        let blobUrlNotaAktif = '';
+
+        function setStatusMsg(msg) {
+            const el = document.getElementById('nota-status-msg');
+            if (el) el.innerText = msg;
+        }
+
+        function formatRupiah(angka) {
+            return 'Rp ' + (Number(angka) || 0).toLocaleString('id-ID');
+        }
+
+        function formatAngka(angka) {
+            return (Number(angka) || 0).toLocaleString('id-ID');
+        }
+
+        function getTanggalLokalISO(dateObj = new Date()) {
+            const offset = dateObj.getTimezoneOffset() * 60000;
+            return new Date(dateObj.getTime() - offset).toISOString().slice(0, 10);
+        }
+
+        function toggleNominalDP() {
+            const statusBayar = document.getElementById('status-bayar').value;
+            const dpGroup = document.getElementById('dp-group');
+            dpGroup.style.display = statusBayar === 'DP' ? 'block' : 'none';
+            if (statusBayar !== 'DP') {
+                document.getElementById('nominal-dp').value = '0';
+            }
+            hitungTotal();
+        }
+
+        function badgeBayarHtml(statusBayar) {
+            if (statusBayar === 'DP') {
+                return `<span class="badge badge-dp">DP</span>`;
+            }
+            return `<span class="badge badge-lunas">Lunas</span>`;
+        }
+
+        function badgeSewaHtml(statusSewa) {
+            const val = statusSewa || 'Disewa';
+            if (val === 'Selesai') return `<span class="badge badge-selesai">${val}</span>`;
+            if (val === 'Terlambat') return `<span class="badge badge-terlambat">${val}</span>`;
+            return `<span class="badge badge-sewa">${val}</span>`;
+        }
+
+        function switchPage(pageId, btn) {
+            document.getElementById('laporan-nota-page').style.display = 'none';
+            document.getElementById('app-header').style.display = 'flex';
+            document.getElementById('app-bottom-nav').style.display = 'flex';
+
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            if (btn) btn.classList.add('active');
+            if (pageId === 'riwayat') renderRiwayat();
+            if (pageId === 'laporan') renderLaporan();
+        }
+
+        function init() {
+            generateNoNota();
+            setTanggalDefault();
+            toggleNominalDP();
+            renderKatalog();
+            renderKeranjang();
+            document.getElementById('setting-nama-toko').value = namaToko;
+            document.getElementById('setting-nama-pemilik').value = namaPemilik;
+            document.getElementById('setting-alamat-toko').value = alamatToko;
+            document.getElementById('setting-wa-toko').value = waToko;
+            cekHashNotaLokal();
+        }
+
+        window.addEventListener('hashchange', cekHashNotaLokal);
+
+        function cekHashNotaLokal() {
+            const hash = window.location.hash || '';
+            if (hash.startsWith('#nota=')) {
+                const kode = decodeURIComponent(hash.slice(6));
+                const trx = transaksiDB.find(t => t.nota === kode || t.id === kode);
+                if (trx) {
+                    bukaLaporanNota(trx, false);
+                }
+            }
+        }
+
+        function generateNoNota() {
+            const today = new Date();
+            const yy = today.getFullYear().toString().slice(-2);
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const rand = Math.floor(Math.random() * 900) + 100;
+            nomorNota = `RNT-${yy}${mm}${dd}-${rand}`;
+        }
+
+        function setTanggalDefault() {
+            const today = new Date();
+            document.getElementById('tgl-ambil').valueAsDate = today;
+            const besok = new Date(today);
+            besok.setDate(besok.getDate() + 1);
+            document.getElementById('tgl-kembali').valueAsDate = besok;
+        }
+
+        function bukaModalSetting() {
+            document.getElementById('setting-nama-toko').value = namaToko;
+            document.getElementById('setting-nama-pemilik').value = namaPemilik;
+            document.getElementById('setting-alamat-toko').value = alamatToko;
+            document.getElementById('setting-wa-toko').value = waToko;
+            document.getElementById('modal-setting').style.display = 'flex';
+            renderListSetting();
+        }
+
+        function tutupModalSetting() {
+            document.getElementById('modal-setting').style.display = 'none';
+        }
+
+        function simpanSetting() {
+            namaToko = document.getElementById('setting-nama-toko').value.trim() || 'KasirNota Pro';
+            namaPemilik = document.getElementById('setting-nama-pemilik').value.trim();
+            alamatToko = document.getElementById('setting-alamat-toko').value.trim();
+            waToko = document.getElementById('setting-wa-toko').value.trim();
+
+            localStorage.setItem('namaToko', namaToko);
+            localStorage.setItem('namaPemilik', namaPemilik);
+            localStorage.setItem('alamatToko', alamatToko);
+            localStorage.setItem('waToko', waToko);
+
+            if (transaksiAktif) {
+                renderLaporanNota(transaksiAktif);
+            }
+            alert('Pengaturan berhasil disimpan!');
+        }
+
+        function renderListSetting() {
+            const container = document.getElementById('list-barang-setting');
+            container.innerHTML = '';
+            katalog.forEach(item => {
+                container.innerHTML += `
+                    <div class="item-row" style="padding: 10px; margin-bottom:5px;">
+                        <div><b>${item.nama}</b><br><small>${formatRupiah(item.harga)} / hari</small></div>
+                        <button class="btn-danger-icon" onclick="hapusBarang(${item.id})">🗑️</button>
+                    </div>`;
+            });
+        }
+
+        function tambahBarangBaru() {
+            const nama = document.getElementById('input-nama-barang').value.trim();
+            const harga = parseInt(document.getElementById('input-harga-barang').value, 10);
+            if (!nama || !harga) return alert('Isi nama dan harga!');
+            const newId = katalog.length > 0 ? katalog[katalog.length - 1].id + 1 : 1;
+            katalog.push({ id: newId, nama: nama, harga: harga });
+            localStorage.setItem('katalogStroller', JSON.stringify(katalog));
+            renderKatalog();
+            renderListSetting();
+            document.getElementById('input-nama-barang').value = '';
+            document.getElementById('input-harga-barang').value = '';
+        }
+
+        function hapusBarang(id) {
+            if (confirm('Hapus barang ini?')) {
+                katalog = katalog.filter(item => item.id !== id);
+                localStorage.setItem('katalogStroller', JSON.stringify(katalog));
+                renderKatalog();
+                renderListSetting();
+            }
+        }
+
+        function renderKatalog() {
+            const container = document.getElementById('katalog-container');
+            container.innerHTML = '';
+            katalog.forEach(item => {
+                container.innerHTML += `
+                    <div class="item-row">
+                        <div class="item-detail"><h4>${item.nama}</h4><p>${formatRupiah(item.harga)} / hari</p></div>
+                        <button class="btn-icon" onclick="tambahKeranjang(${item.id})">+ Tambah</button>
+                    </div>`;
+            });
+        }
+
+        function tambahKeranjang(id) {
+            const barang = katalog.find(b => b.id === id);
+            if (!barang) return;
+            const exist = keranjang.find(k => k.id === id);
+            if (exist) { exist.qty += 1; } else { keranjang.push({ ...barang, qty: 1, hari: 1 }); }
+            renderKeranjang();
+        }
+
+        function renderKeranjang() {
+            const container = document.getElementById('cart-container');
+            if (keranjang.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: gray;">Kosong</p>';
+                hitungTotal();
+                return;
+            }
+            container.innerHTML = '';
+            keranjang.forEach((item, index) => {
+                container.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border); padding:10px 0;">
+                        <div>
+                            <h4 style="font-size:14px;">${item.nama}</h4>
+                            <div style="display:flex; gap:5px; margin-top:5px;">
+                                <input type="number" min="1" value="${item.qty}" style="width:45px; text-align:center;" onchange="updateItem(${index}, 'qty', this.value)">
+                                <span>x</span>
+                                <input type="number" min="1" value="${item.hari}" style="width:45px; text-align:center;" onchange="updateItem(${index}, 'hari', this.value)"> <span>hari</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-weight:600; font-size:14px;">${formatRupiah(item.harga * item.qty * item.hari)}</p>
+                            <button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="hapusItem(${index})">🗑️</button>
+                        </div>
+                    </div>`;
+            });
+            hitungTotal();
+        }
+
+        function updateItem(index, key, val) {
+            keranjang[index][key] = Math.max(1, parseInt(val, 10) || 1);
+            renderKeranjang();
+        }
+
+        function hapusItem(index) {
+            keranjang.splice(index, 1);
+            renderKeranjang();
+        }
+
+        function hitungTotal() {
+            let subtotal = 0;
+            keranjang.forEach(item => { subtotal += (item.harga * item.qty * item.hari); });
+            const ongkir = parseInt(document.getElementById('biaya-ongkir').value, 10) || 0;
+            const diskon = parseInt(document.getElementById('diskon').value, 10) || 0;
+            const total = Math.max(0, subtotal + ongkir - diskon);
+            document.getElementById('total-text').innerText = formatRupiah(total);
+
+            const statusBayar = document.getElementById('status-bayar').value;
+            const sisaRow = document.getElementById('sisa-preview-row');
+            if (statusBayar === 'DP') {
+                const dp = Math.max(0, parseInt(document.getElementById('nominal-dp').value, 10) || 0);
+                const sisa = Math.max(0, total - dp);
+                sisaRow.style.display = 'flex';
+                document.getElementById('sisa-text').innerText = formatRupiah(sisa);
+            } else {
+                sisaRow.style.display = 'none';
+            }
+            return total;
+        }
+
+        function prosesTransaksi() {
+            const nama = document.getElementById('nama-pelanggan').value.trim();
+            if (!nama) return alert('Nama pelanggan harus diisi!');
+            if (keranjang.length === 0) return alert('Keranjang kosong!');
+
+            let subtotal = 0;
+            keranjang.forEach(item => { subtotal += (item.harga * item.qty * item.hari); });
+            const ongkir = parseInt(document.getElementById('biaya-ongkir').value, 10) || 0;
+            const diskon = parseInt(document.getElementById('diskon').value, 10) || 0;
+            const total = Math.max(0, subtotal + ongkir - diskon);
+
+            const statusBayar = document.getElementById('status-bayar').value;
+            const statusSewa = document.getElementById('status-sewa').value;
+            const nominalDP = statusBayar === 'DP'
+                ? Math.min(total, Math.max(0, parseInt(document.getElementById('nominal-dp').value, 10) || 0))
+                : total;
+            const sisaBayar = Math.max(0, total - nominalDP);
+
+            const transaksiBaru = {
+                id: Date.now().toString(),
+                nota: nomorNota,
+                tanggal: getTanggalLokalISO(),
+                pelanggan: nama,
+                noHp: document.getElementById('no-hp').value.trim(),
+                tglAmbil: document.getElementById('tgl-ambil').value,
+                tglKembali: document.getElementById('tgl-kembali').value,
+                jaminan: document.getElementById('jaminan').value,
+                statusSewa: statusSewa,
+                statusBayar: statusBayar,
+                nominalDP: nominalDP,
+                sisaBayar: sisaBayar,
+                items: keranjang.map(i => ({ ...i })),
+                subtotal: subtotal,
+                ongkir: ongkir,
+                diskon: diskon,
+                total: total
+            };
+
+            transaksiDB.unshift(transaksiBaru);
+            localStorage.setItem('transaksiStroller', JSON.stringify(transaksiDB));
+            simpanDokumenNotaLokal(transaksiBaru);
+
+            keranjang = [];
+            document.getElementById('nama-pelanggan').value = '';
+            document.getElementById('no-hp').value = '';
+            document.getElementById('biaya-ongkir').value = '0';
+            document.getElementById('diskon').value = '0';
+            document.getElementById('status-bayar').value = 'Lunas';
+            document.getElementById('status-sewa').value = 'Disewa';
+            document.getElementById('nominal-dp').value = '0';
+            toggleNominalDP();
+            generateNoNota();
+            setTanggalDefault();
+            renderKeranjang();
+
+            bukaLaporanNota(transaksiBaru, true);
+        }
+
+        function buatHtmlKartuNota(trx) {
+            const statusBayar = trx.statusBayar || 'Lunas';
+            const statusSewa = trx.statusSewa || 'Disewa';
+            const nominalDP = statusBayar === 'DP' ? (Number(trx.nominalDP) || 0) : trx.total;
+            const sisaBayar = statusBayar === 'DP' ? Math.max(0, trx.total - nominalDP) : 0;
+
+            const rowsHtml = trx.items.map(i => {
+                const sub = i.harga * i.qty * i.hari;
+                return `
+                    <tr>
+                        <td><b>${i.nama}</b><br><span style="font-size:11px; color:#4B5563;">${i.hari} hari</span></td>
+                        <td class="right">${formatAngka(i.harga)}</td>
+                        <td class="center">${i.qty}</td>
+                        <td class="right"><b>${formatAngka(sub)}</b></td>
+                    </tr>`;
+            }).join('');
+
+            return `
+                <div class="receipt-header">
+                    <div class="receipt-store">${namaToko}</div>
+                    ${namaPemilik ? `<div class="receipt-sub">Pemilik: ${namaPemilik}</div>` : ''}
+                    ${alamatToko ? `<div class="receipt-sub">${alamatToko}</div>` : ''}
+                    ${waToko ? `<div class="receipt-sub">${waToko}</div>` : ''}
+                </div>
+
+                <div class="receipt-customer">${trx.pelanggan}</div>
+
+                <div class="receipt-meta">
+                    <div class="receipt-meta-row">
+                        <span class="receipt-meta-label">Status</span>
+                        <span class="receipt-meta-val">${badgeSewaHtml(statusSewa)}</span>
+                    </div>
+                    <div class="receipt-meta-row">
+                        <span class="receipt-meta-label">NoNota</span>
+                        <span class="receipt-meta-val">${trx.nota}</span>
+                    </div>
+                    <div class="receipt-meta-row">
+                        <span class="receipt-meta-label">Tanggal</span>
+                        <span class="receipt-meta-val">${trx.tanggal}</span>
+                    </div>
+                    <div class="receipt-meta-row">
+                        <span class="receipt-meta-label">Bayar</span>
+                        <span class="receipt-meta-val">${statusBayar.toLowerCase()}</span>
+                    </div>
+                    ${trx.noHp ? `
+                    <div class="receipt-meta-row">
+                        <span class="receipt-meta-label">No. HP</span>
+                        <span class="receipt-meta-val">${trx.noHp}</span>
+                    </div>` : ''}
+                    <div class="receipt-meta-row">
+                        <span class="receipt-meta-label">Ambil / Kembali</span>
+                        <span class="receipt-meta-val">${trx.tglAmbil || '-'} s/d ${trx.tglKembali || '-'}</span>
+                    </div>
+                    <div class="receipt-meta-row">
+                        <span class="receipt-meta-label">Jaminan</span>
+                        <span class="receipt-meta-val">${trx.jaminan}</span>
+                    </div>
+                </div>
+
+                <table class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th class="right">Harga</th>
+                            <th class="center">Qty</th>
+                            <th class="right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+
+                <div class="receipt-totals">
+                    <div class="receipt-total-row">
+                        <span>Subtotal</span>
+                        <span>${formatAngka(trx.subtotal)}</span>
+                    </div>
+                    <div class="receipt-total-row">
+                        <span>Ongkir</span>
+                        <span>${formatAngka(trx.ongkir)}</span>
+                    </div>
+                    <div class="receipt-total-row">
+                        <span>Diskon</span>
+                        <span>${formatAngka(trx.diskon)}</span>
+                    </div>
+                    <div class="receipt-grand-total">
+                        <span>TOTAL</span>
+                        <span>${formatRupiah(trx.total)}</span>
+                    </div>
+                    ${statusBayar === 'DP' ? `
+                    <div class="receipt-total-row" style="margin-top:6px;">
+                        <span>DP</span>
+                        <span>${formatRupiah(nominalDP)}</span>
+                    </div>
+                    <div class="receipt-total-row" style="font-weight:700; color:#92400E;">
+                        <span>Sisa Bayar</span>
+                        <span>${formatRupiah(sisaBayar)}</span>
+                    </div>` : ''}
+                </div>
+
+                <div class="receipt-footer">
+                    Terima kasih telah menggunakan layanan ${namaToko}<br>
+                    Nota web lokal tersimpan di perangkat ini
+                </div>
+            `;
+        }
+
+        function buatDokumenHtmlLokal(trx) {
+            return `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nota ${trx.nota} - ${namaToko}</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:#172033;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header{background:#0f766e;color:white;padding:18px 16px 15px;position:sticky;top:0;z-index:5}header h1{margin:0;font-size:20px}header p{margin:4px 0 0;font-size:12px;opacity:.85}
-nav{display:flex;gap:7px;padding:10px;background:white;position:sticky;top:69px;z-index:4;overflow:auto}nav button{border:0;border-radius:12px;padding:10px 13px;background:#e2e8f0;color:#334155;font-weight:700;white-space:nowrap}nav button.active{background:#0f766e;color:white}
-main{max-width:900px;margin:auto;padding:14px}.page{display:none}.page.active{display:block}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card,.panel{background:white;border-radius:16px;padding:15px;box-shadow:0 2px 8px #0f172a0a;margin-bottom:12px}.card small{color:#64748b}.card strong{display:block;font-size:24px;margin-top:5px}.panel h2{margin:0 0 12px;font-size:18px}
-button,.btn{cursor:pointer}button.primary{background:#0f766e;color:white;border:0;border-radius:10px;padding:11px 14px;font-weight:700}button.secondary{background:#e2e8f0;border:0;border-radius:10px;padding:10px 12px;font-weight:600;color:#334155}button.danger{background:#fee2e2;color:#991b1b;border:0;border-radius:9px;padding:8px}
-input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;background:white;font:inherit;margin:5px 0 10px}label{font-size:13px;font-weight:650;color:#475569}form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.items{display:flex;flex-direction:column;gap:8px}.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px;background:#f8fafc;border-radius:12px}.item .meta{font-size:12px;color:#64748b;margin-top:3px}.muted{color:#64748b;font-size:13px}.total{font-size:22px;font-weight:800;color:#0f766e}.empty{padding:18px;text-align:center;color:#64748b}.status{padding:4px 8px;border-radius:20px;background:#ccfbf1;color:#115e59;font-size:12px;font-weight:700}
-@media(min-width:700px){.cards{grid-template-columns:repeat(4,1fr)}}
-</style></head><body>
-<header><h1 id="businessTitle">StrollerRent Kasir</h1><p>Kasir persewaan stroller • Data tersimpan di perangkat</p></header>
-<nav><button class="active" data-page="home">Dashboard</button><button data-page="cashier">Kasir / Sewa</button><button data-page="rentals">Transaksi</button><button data-page="items">Barang & Menu</button><button data-page="settings">Pengaturan</button></nav>
-<main>
-<section id="home" class="page active"><div class="cards">
-<div class="card"><small>Item tersedia</small><strong id="availableCount">0</strong></div><div class="card"><small>Sedang disewa</small><strong id="rentedCount">0</strong></div><div class="card"><small>Transaksi aktif</small><strong id="activeCount">0</strong></div><div class="card"><small>Total transaksi</small><strong id="transactionCount">0</strong></div></div>
-<div class="panel"><h2>Transaksi aktif</h2><div id="homeActive" class="items"></div></div>
-<div class="panel"><h2>Mulai kasir</h2><button class="primary" onclick="go('cashier')">+ Transaksi sewa baru</button></div></section>
-<section id="cashier" class="page"><div class="panel"><h2>Transaksi sewa baru</h2><form id="rentForm"><label>Nama pelanggan</label><input id="customer" placeholder="Nama pelanggan" required><div class="row"><div><label>Nomor HP</label><input id="phone" placeholder="08..."></div><div><label>Barang</label><select id="rentItem" required></select></div></div><div class="row"><div><label>Lama sewa (hari)</label><input type="number" id="days" value="1" min="1" required></div><div><label>Deposit</label><input type="number" id="deposit" min="0" value="0"></div></div><label>Catatan</label><textarea id="notes" rows="2" placeholder="Catatan (opsional)"></textarea><p>Perkiraan biaya sewa: <span class="total" id="rentTotal">Rp0</span></p><p class="muted">Deposit ditambahkan ke total pembayaran awal.</p><button class="primary" type="submit">Simpan transaksi</button></form></div></section>
-<section id="rentals" class="page"><div class="panel"><h2>Daftar transaksi</h2><div id="rentalList" class="items"></div></div></section>
-<section id="items" class="page"><div class="panel"><h2>Tambah barang / menu sewa</h2><form id="itemForm"><label>Nama item</label><input id="itemName" placeholder="Contoh: Stroller Cabin" required><div class="row"><div><label>Harga sewa per hari (Rp)</label><input id="itemPrice" type="number" min="0" required></div><div><label>Jumlah unit</label><input id="itemQty" type="number" min="1" value="1" required></div></div><label>Deposit default (Rp)</label><input id="itemDeposit" type="number" min="0" value="0"><button class="primary" type="submit">Tambah item</button></form></div><div class="panel"><h2>Daftar barang</h2><div id="itemList" class="items"></div></div></section>
-<section id="settings" class="page"><div class="panel"><h2>Pengaturan usaha</h2><form id="settingsForm"><label>Nama usaha</label><input id="businessName"><label>Nomor WhatsApp</label><input id="businessPhone" placeholder="08..."><label>Denda keterlambatan per hari (Rp)</label><input id="lateFee" type="number" min="0"><label>Catatan pada nota</label><textarea id="receiptNote" rows="3" placeholder="Terima kasih telah menyewa"></textarea><button class="primary" type="submit">Simpan pengaturan</button></form></div><div class="panel"><h2>Data aplikasi</h2><p class="muted">Data tersimpan di browser/perangkat ini. Disarankan ekspor cadangan berkala.</p><button class="secondary" onclick="exportData()">Ekspor cadangan JSON</button> <button class="secondary" onclick="importData()">Impor cadangan</button><button class="danger" onclick="resetData()">Reset semua data</button></div></section>
-</main>
-<script>
-const KEY='strollerrent_v1';
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||{settings:{businessName:'StrollerRent Kasir',businessPhone:'',lateFee:0,receiptNote:'Terima kasih telah menyewa'},items:[{id:1,name:'Stroller Standard',price:30000,qty:2,deposit:50000},{id:2,name:'Stroller Cabin',price:50000,qty:1,deposit:100000}],rentals:[]};
-function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
-function rupiah(v){return 'Rp'+Number(v||0).toLocaleString('id-ID')}
-function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===page));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));render()}
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.page));
-function available(it){return Math.max(0,it.qty-db.rentals.filter(r=>r.itemId===it.id&&r.status==='active').length)}
-function render(){document.getElementById('businessTitle').textContent=db.settings.businessName||'StrollerRent Kasir';document.getElementById('availableCount').textContent=db.items.reduce((n,i)=>n+available(i),0);document.getElementById('rentedCount').textContent=db.rentals.filter(r=>r.status==='active').length;document.getElementById('activeCount').textContent=db.rentals.filter(r=>r.status==='active').length;document.getElementById('transactionCount').textContent=db.rentals.length;
-let sel=document.getElementById('rentItem');sel.innerHTML=db.items.filter(i=>available(i)>0).map(i=>`<option value="${i.id}">${i.name} — ${rupiah(i.price)}/hari (${available(i)} tersedia)</option>`).join('');
-document.getElementById('rentTotal').textContent=rupiah((Number(document.getElementById('days')?.value||1))*(db.items.find(i=>i.id==sel.value)?.price||0));
-let active=db.rentals.filter(r=>r.status==='active');document.getElementById('homeActive').innerHTML=active.length?active.map(r=>rentalHTML(r,true)).join(''):'<div class="empty">Belum ada barang yang sedang disewa</div>';
-document.getElementById('rentalList').innerHTML=db.rentals.length?[...db.rentals].reverse().map(r=>rentalHTML(r,false)).join(''):'<div class="empty">Belum ada transaksi</div>';
-document.getElementById('itemList').innerHTML=db.items.map(i=>`<div class="item"><div><b>${i.name}</b><div class="meta">${rupiah(i.price)}/hari • Stok ${i.qty} • Tersedia ${available(i)} • Deposit ${rupiah(i.deposit)}</div></div><button class="danger" onclick="deleteItem(${i.id})">Hapus</button></div>`).join('')||'<div class="empty">Belum ada item</div>';
-document.getElementById('businessName').value=db.settings.businessName;document.getElementById('businessPhone').value=db.settings.businessPhone;document.getElementById('lateFee').value=db.settings.lateFee;document.getElementById('receiptNote').value=db.settings.receiptNote}
-function rentalHTML(r,compact){let it=db.items.find(i=>i.id===r.itemId);return `<div class="item"><div><b>${r.customer}</b><div class="meta">${it?.name||'Item'} • ${r.days} hari • ${rupiah(r.rent)} sewa + ${rupiah(r.deposit)} deposit<br>${r.start} • ${r.status==='active'?'Sedang disewa':'Selesai'}</div></div>${r.status==='active'?`<button class="primary" onclick="returnItem(${r.id})">Kembalikan</button>`:`<span class="status">Selesai</span>`}</div>`}
-document.getElementById('days').addEventListener('input',render);
-document.getElementById('rentForm').onsubmit=e=>{e.preventDefault();let id=Number(document.getElementById('rentItem').value),it=db.items.find(x=>x.id===id);if(!it||available(it)<1){alert('Item tidak tersedia');return}let days=Number(document.getElementById('days').value),deposit=Number(document.getElementById('deposit').value);db.rentals.push({id:Date.now(),customer:document.getElementById('customer').value,phone:document.getElementById('phone').value,itemId:id,days,deposit,rent:days*it.price,notes:document.getElementById('notes').value,start:new Date().toLocaleString('id-ID'),status:'active'});e.target.reset();document.getElementById('days').value=1;save();go('rentals');alert('Transaksi sewa tersimpan!')};
-document.getElementById('itemForm').onsubmit=e=>{e.preventDefault();db.items.push({id:Date.now(),name:itemName.value,price:Number(itemPrice.value),qty:Number(itemQty.value),deposit:Number(itemDeposit.value)});e.target.reset();itemQty.value=1;itemDeposit.value=0;save()};
-function deleteItem(id){if(db.rentals.some(r=>r.itemId===id&&r.status==='active'))return alert('Item masih disewa, tidak bisa dihapus.');if(confirm('Hapus item ini?')){db.items=db.items.filter(i=>i.id!==id);save()}}
-function returnItem(id){let r=db.rentals.find(x=>x.id===id);if(!r)return;let late=prompt('Jumlah hari terlambat (0 jika tepat waktu):','0');if(late===null)return;late=Math.max(0,Number(late)||0);let fee=late*db.settings.lateFee;if(confirm(`Konfirmasi pengembalian? Denda: ${rupiah(fee)}. Deposit: ${rupiah(r.deposit)}.`)){r.status='returned';r.returnDate=new Date().toLocaleString('id-ID');r.lateDays=late;r.fee=fee;save();alert('Pengembalian dicatat. Deposit dikembalikan: '+rupiah(Math.max(0,r.deposit-fee)))}}
-document.getElementById('settingsForm').onsubmit=e=>{e.preventDefault();db.settings={businessName:businessName.value,businessPhone:businessPhone.value,lateFee:Number(lateFee.value),receiptNote:receiptNote.value};save();alert('Pengaturan disimpan')};
-function exportData(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='cadangan-strollerrent.json';a.click();URL.revokeObjectURL(a.href)}
-function importData(){let f=document.createElement('input');f.type='file';f.accept='.json,application/json';f.onchange=()=>{let reader=new FileReader();reader.onload=()=>{try{db=JSON.parse(reader.result);save();alert('Data berhasil diimpor')}catch(e){alert('File tidak valid')}};reader.readAsText(f.files[0])};f.click()}
-function resetData(){if(confirm('Hapus semua data aplikasi?')){localStorage.removeItem(KEY);location.reload()}}
-render();
-</script></body></html>
+  body { font-family: 'Poppins', sans-serif; background: #F3F4F6; margin: 0; padding: 14px; color: #111827; }
+  .receipt-card { max-width: 440px; margin: 0 auto; background: #fff; border-radius: 6px; padding: 20px 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .receipt-header { text-align: center; padding-bottom: 14px; border-bottom: 1px solid #9CA3AF; margin-bottom: 14px; }
+  .receipt-store { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .receipt-sub { font-size: 13px; color: #1F2937; line-height: 1.45; margin-top: 2px; }
+  .receipt-customer { text-align: center; font-size: 17px; font-weight: 700; margin: 12px 0 14px 0; }
+  .receipt-meta { font-size: 13px; margin-bottom: 14px; }
+  .receipt-meta-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; gap: 12px; }
+  .receipt-meta-label { color: #1F2937; font-weight: 500; }
+  .receipt-meta-val { font-weight: 700; text-align: right; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #DBEAFE; color: #1E40AF; }
+  .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
+  .receipt-table thead th { background: #2563EB; color: #fff; font-weight: 600; padding: 8px 6px; text-align: left; }
+  .receipt-table th.right, .receipt-table td.right { text-align: right; }
+  .receipt-table th.center, .receipt-table td.center { text-align: center; }
+  .receipt-table tbody td { padding: 8px 6px; border-bottom: 1px solid #E5E7EB; vertical-align: top; }
+  .receipt-totals { border-top: 1px solid #9CA3AF; padding-top: 10px; font-size: 14px; }
+  .receipt-total-row { display: flex; justify-content: space-between; padding: 4px 0; }
+  .receipt-grand-total { display: flex; justify-content: space-between; padding-top: 8px; margin-top: 6px; border-top: 1px solid #111827; font-size: 16px; font-weight: 700; }
+  .receipt-footer { text-align: center; margin-top: 16px; padding-top: 12px; border-top: 1px dashed #D1D5DB; font-size: 12px; color: #374151; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div class="receipt-card">${buatHtmlKartuNota(trx)}</div>
+</body>
+</html>`;
+        }
+
+        function simpanDokumenNotaLokal(trx) {
+            try {
+                localStorage.setItem(`notaWebLokal_${trx.nota}`, buatDokumenHtmlLokal(trx));
+            } catch (e) {}
+        }
+
+        function renderLaporanNota(trx) {
+            simpanDokumenNotaLokal(trx);
+            document.getElementById('receipt-content').innerHTML = buatHtmlKartuNota(trx);
+
+            const hashLink = `${window.location.href.split('#')[0]}#nota=${encodeURIComponent(trx.nota)}`;
+            document.getElementById('local-nota-url-box').innerHTML = `<b>Nota Web Lokal:</b> ${hashLink}`;
+        }
+
+        function bukaWebNotaLokal() {
+            if (!transaksiAktif) return;
+            if (blobUrlNotaAktif) {
+                URL.revokeObjectURL(blobUrlNotaAktif);
+                blobUrlNotaAktif = '';
+            }
+            const htmlDoc = buatDokumenHtmlLokal(transaksiAktif);
+            const blob = new Blob([htmlDoc], { type: 'text/html;charset=utf-8' });
+            blobUrlNotaAktif = URL.createObjectURL(blob);
+            window.open(blobUrlNotaAktif, '_blank');
+            setStatusMsg('Halaman web nota lokal dibuka.');
+        }
+
+        function bukaLaporanNota(trx, updateHash = true) {
+            transaksiAktif = trx;
+            if (updateHash) {
+                window.location.hash = `nota=${encodeURIComponent(trx.nota)}`;
+            }
+            renderLaporanNota(trx);
+            setStatusMsg('');
+
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.getElementById('app-header').style.display = 'none';
+            document.getElementById('app-bottom-nav').style.display = 'none';
+            document.getElementById('laporan-nota-page').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function kembaliDariNota() {
+            transaksiAktif = null;
+            if (window.location.hash.startsWith('#nota=')) {
+                history.replaceState(null, '', window.location.href.split('#')[0]);
+            }
+            document.getElementById('laporan-nota-page').style.display = 'none';
+            document.getElementById('app-header').style.display = 'flex';
+            document.getElementById('app-bottom-nav').style.display = 'flex';
+
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-kasir').classList.add('active');
+            document.querySelector('.nav-item').classList.add('active');
+        }
+
+        function buatTeksNota(trx) {
+            const statusBayar = trx.statusBayar || 'Lunas';
+            const statusSewa = trx.statusSewa || 'Disewa';
+            const nominalDP = statusBayar === 'DP' ? (Number(trx.nominalDP) || 0) : trx.total;
+            const sisaBayar = statusBayar === 'DP' ? Math.max(0, trx.total - nominalDP) : 0;
+
+            const barisItems = trx.items.map(i => {
+                const sub = i.harga * i.qty * i.hari;
+                return `${i.nama} (${i.qty}x ${i.hari}hr) = ${formatRupiah(sub)}`;
+            }).join('\n');
+
+            return [
+                namaToko,
+                namaPemilik ? `Pemilik: ${namaPemilik}` : null,
+                alamatToko ? `Alamat: ${alamatToko}` : null,
+                waToko ? `Kontak: ${waToko}` : null,
+                '----------------------',
+                `Pelanggan: ${trx.pelanggan}`,
+                `Status   : ${statusSewa}`,
+                `NoNota   : ${trx.nota}`,
+                `Tanggal  : ${trx.tanggal}`,
+                `Bayar    : ${statusBayar.toLowerCase()}`,
+                trx.noHp ? `No. HP   : ${trx.noHp}` : null,
+                `Ambil    : ${trx.tglAmbil || '-'}`,
+                `Kembali  : ${trx.tglKembali || '-'}`,
+                `Jaminan  : ${trx.jaminan}`,
+                '----------------------',
+                barisItems,
+                '----------------------',
+                `Subtotal : ${formatRupiah(trx.subtotal)}`,
+                `Ongkir   : ${formatRupiah(trx.ongkir)}`,
+                `Diskon   : ${formatRupiah(trx.diskon)}`,
+                `TOTAL    : ${formatRupiah(trx.total)}`,
+                statusBayar === 'DP' ? `DP       : ${formatRupiah(nominalDP)}` : null,
+                statusBayar === 'DP' ? `Sisa     : ${formatRupiah(sisaBayar)}` : null,
+                '----------------------',
+                'Terima kasih!'
+            ].filter(Boolean).join('\n');
+        }
+
+        async function salinTeksNota() {
+            if (!transaksiAktif) return;
+            const teks = buatTeksNota(transaksiAktif);
+            try {
+                await navigator.clipboard.writeText(teks);
+                setStatusMsg('Teks nota berhasil disalin ke clipboard.');
+            } catch (err) {
+                const area = document.createElement('textarea');
+                area.value = teks;
+                document.body.appendChild(area);
+                area.select();
+                document.execCommand('copy');
+                document.body.removeChild(area);
+                setStatusMsg('Teks nota berhasil disalin.');
+            }
+        }
+
+        function renderRiwayat() {
+            const container = document.getElementById('riwayat-container');
+            if (!transaksiDB.length) {
+                container.innerHTML = '<p style="text-align:center; color:gray; padding:15px 0;">Belum ada transaksi.</p>';
+                return;
+            }
+            container.innerHTML = '';
+            transaksiDB.forEach(trx => {
+                container.innerHTML += `
+                    <div class="item-row">
+                        <div class="item-detail">
+                            <h4>${trx.nota} • ${trx.pelanggan}</h4>
+                            <p>${trx.tanggal} | ${formatRupiah(trx.total)}</p>
+                            <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">
+                                ${badgeSewaHtml(trx.statusSewa || 'Disewa')}
+                                ${badgeBayarHtml(trx.statusBayar || 'Lunas')}
+                            </div>
+                        </div>
+                        <button class="btn-icon" onclick="bukaLaporanNotaById('${trx.id}')">Lihat Nota</button>
+                    </div>`;
+            });
+        }
+
+        function bukaLaporanNotaById(id) {
+            const found = transaksiDB.find(t => t.id === id);
+            if (found) bukaLaporanNota(found, true);
+        }
+
+        function renderLaporan() {
+            const filter = document.getElementById('filter-laporan').value;
+            const jumlahHari = filter === 'bulan' ? 30 : 7;
+            const chartEl = document.getElementById('chart-container');
+            const listEl = document.getElementById('laporan-list');
+
+            const hariList = [];
+            const now = new Date();
+            for (let i = jumlahHari - 1; i >= 0; i--) {
+                const d = new Date(now);
+                d.setDate(now.getDate() - i);
+                const iso = getTanggalLokalISO(d);
+                const label = `${d.getDate()}/${d.getMonth() + 1}`;
+                const totalHari = transaksiDB
+                    .filter(t => t.tanggal === iso)
+                    .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+                hariList.push({ iso, label, total: totalHari });
+            }
+
+            const maxVal = Math.max(...hariList.map(h => h.total), 1);
+            chartEl.innerHTML = '';
+            hariList.forEach(h => {
+                const tinggiPx = Math.max(4, Math.round((h.total / maxVal) * 110));
+                chartEl.innerHTML += `
+                    <div class="bar-wrapper">
+                        <div class="bar" style="height:${tinggiPx}px;" title="${h.label}: ${formatRupiah(h.total)}"></div>
+                        <div class="bar-label">${h.label}</div>
+                    </div>`;
+            });
+
+            const totalPeriode = hariList.reduce((sum, h) => sum + h.total, 0);
+            const jumlahTrx = transaksiDB.filter(t => hariList.some(h => h.iso === t.tanggal)).length;
+            listEl.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:14px;">
+                    <span>Jumlah Transaksi</span><b>${jumlahTrx}</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:15px; color:var(--primary);">
+                    <span><b>Total Pendapatan</b></span><b>${formatRupiah(totalPeriode)}</b>
+                </div>`;
+        }
+
+        init();
+    </script>
+</body>
+</html>
